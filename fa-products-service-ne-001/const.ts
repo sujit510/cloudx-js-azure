@@ -7,16 +7,19 @@ export const products: Product[] = [{
   title: 'Learn JS',
   description: 'This book will help you master JS',
   price: 200,
+  count: 35,
 }, {
   id: '003',
   title: 'Learn Azure',
   description: 'This book will help you become Azure expert',
   price: 150,
+  count: 50,
 }, {
   id: '002',
   title: 'Learn TS',
   description: 'Sharpen your TS skills with this book',
   price: 100,
+  count: 75,
 }];
 
 export const getConfigFromConfigService = async (ctx: Context) => {
@@ -29,3 +32,24 @@ export const getConfigFromConfigService = async (ctx: Context) => {
     const configs = await client.getConfigurationSetting({ key: 'MY_TEST_CONFIG_KEY' });
     ctx.log('configs::', configs);
 }
+
+export const pick = (obj, ...props) => {
+  return props.reduce(function(result, prop) {
+    if (typeof prop === "object") {
+      console.log('prop::', prop);
+      const key = Object.keys(prop)[0];
+      result[prop[key]] = obj[key];
+    } else {
+      result[prop] = obj[prop];
+    }
+    return result;
+  }, {});
+};
+
+export const omit = (obj, ...props) => {
+  const result = { ...obj };
+  props.forEach(function(prop) {
+    delete result[prop];
+  });
+  return result;
+};

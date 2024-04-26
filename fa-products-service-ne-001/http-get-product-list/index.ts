@@ -1,10 +1,15 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
-import { products } from "../const";
+import { productsContainer, stocksContainer } from "../db";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+    context.log('Incoming request for get product list');
+    const productsResponse = await productsContainer.items.query({ query: `select * from c` }).fetchAll();
+    const stocksResponse = await stocksContainer.items.query({ query: `select * from c` }).fetchAll();
     context.res = {
-        // status: 200, /* Defaults to 200 */
-        body: products
+        body: productsResponse.resources.map(product => ({
+            ...product,
+            count: stocksResponse.resources.find(stock => stock.product_id === product.id)?.count
+        }))
     };
 
 };

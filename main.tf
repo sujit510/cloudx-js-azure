@@ -45,7 +45,6 @@ resource "azurerm_application_insights" "products_service_fa" {
   resource_group_name = azurerm_resource_group.product_service_rg.name
 }
 
-
 resource "azurerm_windows_function_app" "products_service" {
   name     = "fa-sujit-products-service-ne-001"
   location = "northeurope"
@@ -70,7 +69,7 @@ resource "azurerm_windows_function_app" "products_service" {
 
     # Enable function invocations from Azure Portal.
     cors {
-      allowed_origins = ["https://portal.azure.com"]
+      allowed_origins = ["https://portal.azure.com", "https://sujitfrontendtest.z16.web.core.windows.net"]
     }
 
     application_stack {
@@ -93,5 +92,65 @@ resource "azurerm_windows_function_app" "products_service" {
       tags["hidden-link: /app-insights-resource-id"],
       tags["hidden-link: /app-insights-conn-string"]
     ]
+  }
+}
+
+resource "azurerm_cosmosdb_account" "test_app" {
+  location = "northeurope"
+  name = "cosmos-db-sujit"
+  offer_type = "Standard"
+  resource_group_name = azurerm_resource_group.product_service_rg.name
+  kind = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Eventual"
+  }
+
+  capabilities {
+    name = "EnableServerless"
+  }
+
+  geo_location {
+    failover_priority = 0
+    location = "North Europe"
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "products_app" {
+  account_name = azurerm_cosmosdb_account.test_app.name
+  name = "products-db"
+  resource_group_name = azurerm_resource_group.product_service_rg.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "products" {
+  account_name = azurerm_cosmosdb_account.test_app.name
+  database_name = azurerm_cosmosdb_sql_database.products_app.name
+  name = "products"
+  partition_key_path  = "/id"
+  partition_key_version = 2
+  resource_group_name = azurerm_resource_group.product_service_rg.name
+  default_ttl = -1
+
+  indexing_policy {
+    indexing_mode = "consistent"
+    included_path {
+      path = "/*"
+    }
+  }
+}
+
+resource "azurerm_cosmosdb_sql_container" "stocks" {
+  account_name = azurerm_cosmosdb_account.test_app.name
+  database_name = azurerm_cosmosdb_sql_database.products_app.name
+  name                = "stocks"
+  partition_key_path  = "/product_id"
+  partition_key_version = 2
+  resource_group_name = azurerm_resource_group.product_service_rg.name
+
+  indexing_policy {
+    indexing_mode = "consistent"
+    included_path {
+      path = "/*"
+    }
   }
 }
