@@ -8,12 +8,11 @@
     "prestart": "npm run build",
     "start": "NODE_TLS_REJECT_UNAUTHORIZED='0' && func start",
     "test": "echo \"No tests yet...\"",
-    "seed": "npx ts-node seed-feeder.ts",
-    "deploy": "func azure functionapp publish fa-sujit-products-service-ne-001"
+    "deploy": "func azure functionapp publish fa-sujit-import-service"
   },
   "dependencies": {
-    "@azure/app-configuration": "^1.5.0",
-    "@azure/cosmos": "^4.0.0",
+    "@azure/storage-blob": "^12.17.0",
+    "csv-parser": "^3.0.0",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
