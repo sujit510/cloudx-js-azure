@@ -6,14 +6,17 @@
     "build": "tsc",
     "watch": "tsc -w",
     "prestart": "npm run build",
-    "start": "NODE_TLS_REJECT_UNAUTHORIZED='0' && func start",
+    "start": "NODE_TLS_REJECT_UNAUTHORIZED='0' && func start --port 7071",
     "test": "echo \"No tests yet...\"",
     "seed": "npx ts-node seed-feeder.ts",
-    "deploy": "func azure functionapp publish fa-sujit-products-service-ne-001"
+    "deploy": "npm run build && func azure functionapp publish fa-sujit-products-service-ne-001"
   },
   "dependencies": {
     "@azure/app-configuration": "^1.5.0",
     "@azure/cosmos": "^4.0.0",
+    "@azure/service-bus": "^7.9.4",
+    "@azure/storage-blob": "^12.18.0",
+    "csv-parser": "^3.0.0",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
