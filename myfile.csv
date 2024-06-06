@@ -1,2 +1,3 @@
-john,male,29,java
-steve,male,36,javascript
+id,title,description,price,count
+10,"Learn HTML","",1500,78
+99,"Learn CSS","Learn Delicious Styling",450,36

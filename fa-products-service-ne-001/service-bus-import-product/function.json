@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "name": "mySbMsg",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "queueName": "sujit_new_servicebus_queue",
+      "connection": "MyServiceBusConnection"
+    }
+  ],
+  "scriptFile": "../dist/service-bus-import-product/index.js"
+}
