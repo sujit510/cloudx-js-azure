@@ -24,7 +24,6 @@ const blobTrigger: AzureFunction = async function (context: Context, myBlob: any
                 .on('data', async (row, index) => {
                     context.log(`Found Row ${index}::`, JSON.stringify(row));
 
-                    // await sender.sendMessages(messages);
                     console.log(`Current message: ${row}`);
                     messages.push({
                         body: row
@@ -43,8 +42,8 @@ const blobTrigger: AzureFunction = async function (context: Context, myBlob: any
                         context.log('Error while sending messages to Q:', err);
                         reject(err);
                     } finally {
-                        await sender.close();
-                        await sbClient.close();
+                        await sender?.close();
+                        await sbClient?.close();
                         resolve();
                     }
                 });
