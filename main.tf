@@ -261,3 +261,134 @@ resource "azurerm_servicebus_queue" "example" {
   requires_session                        = false
   dead_lettering_on_message_expiration    = false
 }
+
+variable "unique_resource_id_prefix" {
+  description = "The prefix to use for resources that need a unique name"
+  type        = string
+  default     = "jscc"
+}
+
+variable "chatbot_container_tag_acr" {
+  description = "Image tag"
+  type        = string
+  default     = "v1"
+}
+
+variable "chatbot_container_name1" {
+  description = "Container 1"
+  type        = string
+  default     = "hello-world-app"
+}
+
+variable "chatbot_container_name2" {
+  description = "Container 2"
+  type        = string
+  default     = "hello-world-app"
+}
+
+resource "azurerm_container_registry" "chatbot_acr" {
+  name                = "${var.unique_resource_id_prefix}chatbotacr"
+  resource_group_name = azurerm_resource_group.product_service_rg.name
+  location            = "northeurope"
+  sku                 = "Basic"
+  admin_enabled       = true
+}
+
+resource "azurerm_log_analytics_workspace" "chatbot_log_analytics_workspace" {
+  name                = "${var.unique_resource_id_prefix}-log-analytics-chatbot"
+  location            = "northeurope"
+  resource_group_name = azurerm_resource_group.product_service_rg.name
+}
+
+resource "azurerm_container_app_environment" "chatbot_cae" {
+  name                       = "${var.unique_resource_id_prefix}-cae-chatbot"
+  location                   = "northeurope"
+  resource_group_name        = azurerm_resource_group.product_service_rg.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.chatbot_log_analytics_workspace.id
+}
+
+resource "azurerm_container_app" "chatbot_ca_docker_acr1" {
+  name                         = "${var.unique_resource_id_prefix}-chatbot-ca-acr1"
+  container_app_environment_id = azurerm_container_app_environment.chatbot_cae.id
+  resource_group_name          = azurerm_resource_group.product_service_rg.name
+  revision_mode                = "Single"
+
+  registry {
+    server               = azurerm_container_registry.chatbot_acr.login_server
+    username             = azurerm_container_registry.chatbot_acr.admin_username
+    password_secret_name = "acr-password"
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+    target_port                = 3000
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+  }
+
+  template {
+    container {
+      name   = "${var.unique_resource_id_prefix}-chatbot-container-acr1"
+      image  = "${azurerm_container_registry.chatbot_acr.login_server}/${var.chatbot_container_name1}:${var.chatbot_container_tag_acr}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "CONTAINER_REGISTRY_NAME"
+        value = "Azure Container Registry"
+      }
+    }
+  }
+
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.chatbot_acr.admin_password
+  }
+}
+
+resource "azurerm_container_app" "chatbot_ca_docker_acr2" {
+  name                         = "${var.unique_resource_id_prefix}-chatbot-ca-acr2"
+  container_app_environment_id = azurerm_container_app_environment.chatbot_cae.id
+  resource_group_name          = azurerm_resource_group.product_service_rg.name
+  revision_mode                = "Single"
+
+  registry {
+    server               = azurerm_container_registry.chatbot_acr.login_server
+    username             = azurerm_container_registry.chatbot_acr.admin_username
+    password_secret_name = "acr-password"
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+    target_port                = 3000
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+  }
+
+  template {
+    container {
+      name   = "${var.unique_resource_id_prefix}-chatbot-container-acr2"
+      image  = "${azurerm_container_registry.chatbot_acr.login_server}/${var.chatbot_container_name2}:${var.chatbot_container_tag_acr}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "CONTAINER_REGISTRY_NAME"
+        value = "Azure Container Registry"
+      }
+    }
+  }
+
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.chatbot_acr.admin_password
+  }
+}
